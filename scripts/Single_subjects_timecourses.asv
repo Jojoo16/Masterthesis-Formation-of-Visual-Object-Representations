@@ -1,0 +1,93 @@
+%% Plot single participant's decoding time course
+% This script plots the results of time-resolved multivariate analysis
+% for all infant participants in the study "Visual category
+% representation in the infant brain"
+
+%% Initialize
+
+% Clean command window, workspace and figure windows
+clc; clear; close all;
+projectRoot = 'C:\Users\hanni\Documents\MATLAB\Formation-of-Visual-Object-Representations';
+addpath(genpath(projectRoot));
+
+input_folder  = fullfile(projectRoot, 'results', 'DA_mean', 'Infants_100', 'cat');
+
+subjects_new = {'23_2', '24_2', '25_2', '26_2', '27_2', '33_2', '34_2', '37_2', '38_2', '40_2', '42_2'};
+subjects_old = {'7_1', '10_1', '15_1', '17_1', '18_1', '7_2', '10_2', '15_2', '17_2', '18_2', '23_1', '24_1', '25_1', '26_1', '27_1', '33_1', '34_1', '37_1', '38_1', '40_1', '42_1'};
+
+subjects = [subjects_new, subjects_old];
+
+chance = 50;
+
+%% Load data using your existing pipeline
+[data, DA_all] = load_subjects(input_folder, subjects);
+results = extract_decoding_stats(DA_all, chance);
+ 
+timepoints = results.time;          % time vector in ms
+resdata    = results.timeCourse_sub; % per-subject decoding time courses
+ 
+% >>> CHECK THIS: confirm the orientation before trusting the plots <<<
+% Run: size(resdata)  and compare to numel(subjects) and numel(timepoints)
+% If size(resdata,1) == numel(subjects)  -> rows are subjects (current code below is correct)
+% If size(resdata,2) == numel(subjects)  -> columns are subjects (transpose resdata, or swap indexing)
+fprintf('resdata size: %d x %d | nSubjects = %d | nTimepoints = %d\n', ...
+    size(resdata,1), size(resdata,2), numel(subjects), numel(timepoints));
+ 
+nSub = numel(subjects);
+
+%%
+
+%% Plot result
+
+f=figure(1);
+nRows = ceil(nSub/5);
+
+for parn=1:nSub % Loop through all participants
+    
+    subplot(nRows,5,parn);
+    
+    resdata_ = resdata(:,parn);
+    
+    H_plot = plot (timepoints, resdata_, 'LineWidth', 1, 'Color', 'r');
+    
+    % Cosmetic of plots
+    box off;
+    H_onset = line([0,0], [-200,100],'Color',[0.5 0.5 0.5], 'Linewidth', 0.5);
+    set(get(get(H_onset,'Annotation'),'Legendinformation'),'Icondisplaystyle', 'off');
+    
+    H_chance = line([timepoints(1), timepoints(end)], [chance, chance], 'Color', [0.5 0.5 0.5], 'Linewidth', 0.5);
+    set(get(get(H_chance ,'Annotation'),'Legendinformation'),'Icondisplaystyle', 'off');
+    
+    set(gca,'XTick',timepoints(1):100:timepoints(end), ...
+        'XTickLabel', addcommaarr(timepoints(1):100:timepoints(end)));
+    set(gca,'YTick',10:20:90, 'YTickLabel', addcommaarr(10:20:90));
+    
+    set(gca, 'Fontsize', 8, 'Fontname', 'Arial', ...
+        'Xcolor', 'Black', 'Ycolor', 'Black', 'LineWidth', 0.5);
+    
+    xlim([timepoints(1), timepoints(end)]); xtickangle(45); % We only see the epoch [-100, 1,000]ms
+    ylim([10,90]);
+    
+    if parn > nSub - 5
+        xlabel('Time(ms)','Fontsize', 10, 'Fontname', 'Arial')
+    else
+        set(gca,'XTickLabel',[]);
+    end
+    
+    if mod(parn,5)==1
+        ylabel(['Decoding',newline,'accuracy(%)'], ...
+            'Fontsize', 10, 'Fontname', 'Arial')
+    else
+        set(gca,'YTickLabel',[]);
+    end
+    
+    title(sprintf('participant %02d', parn), 'FontSize', 10);
+end
+
+% Set figure position and size
+width=1000;
+height=800;
+set(gcf,'Position',[1,1,width,height],...
+    'Color', 'White','Renderer','Painters');
+movegui(f, 'center');
+
