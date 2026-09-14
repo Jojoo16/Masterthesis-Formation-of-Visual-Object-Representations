@@ -14,7 +14,8 @@ Two age groups are analyzed (`Children_100`, `Infants_100`), each across four co
 
 Clone this repository:  
 ```
-git clone https://github.com/Jojoo16/Formation-of-Visual-Object-Representations.git
+git clone https://github.com/Jojoo16/Masterthesis-Formation-of-Visual-Object-Representations/tree/main
+
 ```    
 At the top of each script, update projectRoot to point to wherever repository is cloned
 
